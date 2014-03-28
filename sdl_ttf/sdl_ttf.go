@@ -64,6 +64,14 @@ func ByteSwappedUnicode(swap bool) {
 	C.TTF_ByteSwappedUNICODE(C.int(val))
 }
 
+/*
+file: File name to load font from.
+ptsize: Point size (based on 72DPI) to load font as. This basically translates to pixel height.
+
+Load file for use as a font, at ptsize size. This is actually TTF_OpenFontIndex(file, ptsize, 0). This can load TTF and FON files.
+
+Returns: a pointer to the font as a TTF_Font. NULL is returned on errors.
+*/
 func OpenFont(file string, size int) (*Font,error) {
 	_file := (C.CString) (file)
 	_size := (C.int) (size)
