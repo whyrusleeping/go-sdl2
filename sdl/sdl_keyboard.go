@@ -1,19 +1,19 @@
 package sdl
 
-// #include <SDL2/SDL_keyboard.h>
+// #include <SDL2/SDL.h>
 import "C"
 import "unsafe"
 import "reflect"
 
 type Keysym struct {
 	Scancode Scancode
-	Sym Keycode
-	Mod uint16
-	Unicode uint32
+	Sym      Keycode
+	Mod      uint16
+	Unicode  uint32
 }
 
 func GetKeyboardFocus() *Window {
-	return (*Window) (unsafe.Pointer(C.SDL_GetKeyboardFocus()))
+	return (*Window)(unsafe.Pointer(C.SDL_GetKeyboardFocus()))
 }
 
 func GetKeyboardState() []uint8 {
@@ -26,39 +26,36 @@ func GetKeyboardState() []uint8 {
 	return *(*[]uint8)(unsafe.Pointer(&sh))
 }
 
-func SetModState(modstate Keymod) {
-	_modstate := (C.SDL_Keymod) (modstate)
-	C.SDL_SetModState(_modstate)
+func SetModState(mod Keymod) {
+	C.SDL_SetModState(mod.c())
 }
 
-func GetKeyFromScancode(scancode Scancode) Keycode {
-	_scancode := (C.SDL_Scancode) (scancode)
-	return (Keycode) (C.SDL_GetKeyFromScancode(_scancode))
+func GetKeyFromScancode(code Scancode) Keycode {
+	return (Keycode)(C.SDL_GetKeyFromScancode(code.c()))
 }
 
-func GetScancodeFromKey(key Keycode) Scancode {
-	_key := (C.SDL_Keycode) (key)
-	return (Scancode) (C.SDL_GetScancodeFromKey(_key))
+func GetScancodeFromKey(code Keycode) Scancode {
+	return (Scancode)(C.SDL_GetScancodeFromKey(code.c()))
 }
 
-func GetScancodeName(scancode Scancode) string {
-	_scancode := (C.SDL_Scancode) (scancode)
-	return (C.GoString) (C.SDL_GetScancodeName(_scancode))
+func GetScancodeName(code Scancode) string {
+	return (C.GoString)(C.SDL_GetScancodeName(code.c()))
 }
 
 func GetScancodeFromName(name string) Scancode {
-	_name := (C.CString) (name)
-	return (Scancode) (C.SDL_GetScancodeFromName(_name))
+	_name := C.CString(name)
+	defer C.free(unsafe.Pointer(_name))
+	return (Scancode)(C.SDL_GetScancodeFromName(_name))
 }
 
-func GetKeyName(key Keycode) string {
-	_key := (C.SDL_Keycode) (key)
-	return (C.GoString) (C.SDL_GetKeyName(_key))
+func GetKeyName(code Keycode) string {
+	return (C.GoString)(C.SDL_GetKeyName(code.c()))
 }
 
 func GetKeyFromName(name string) Keycode {
-	_name := (C.CString) (name)
-	return (Keycode) (C.SDL_GetKeyFromName(_name))
+	_name := C.CString(name)
+	defer C.free(unsafe.Pointer(_name))
+	return (Keycode)(C.SDL_GetKeyFromName(_name))
 }
 
 func StartTextInput() {
@@ -74,8 +71,7 @@ func StopTextInput() {
 }
 
 func SetTextInputRect(rect *Rect) {
-	_rect := (*C.SDL_Rect) (unsafe.Pointer(rect))
-	C.SDL_SetTextInputRect(_rect)
+	C.SDL_SetTextInputRect(rect.cptr())
 }
 
 func HasScreenKeyboardSupport() bool {
@@ -83,6 +79,5 @@ func HasScreenKeyboardSupport() bool {
 }
 
 func IsScreenKeyboardShown(window *Window) bool {
-	_window := (*C.SDL_Window) (unsafe.Pointer(window))
-	return C.SDL_IsScreenKeyboardShown(_window) > 0
+	return C.SDL_IsScreenKeyboardShown(window.cptr()) > 0
 }

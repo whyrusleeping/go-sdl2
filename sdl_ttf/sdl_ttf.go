@@ -1,7 +1,15 @@
 package ttf
 
-//#cgo LDFLAGS: -lSDL2 -lSDL2_ttf
+//#cgo windows LDFLAGS: -lSDL2 -lSDL2_ttf
+//#cgo darwin LDFLAGS: -framework SDL2 -framework SDL2_ttf
+//#cgo linux freebsd pkg-config: sdl2
+//#cgo linux freebsd LDFLAGS: -lSDL2_ttf
+//#include <stdlib.h>
+//#if defined(__APPLE__)
+//#include <SDL2_ttf/SDL_ttf.h>
+//#else
 //#include <SDL2/SDL_ttf.h>
+//#endif
 //void Do_TTF_SetError(const char *str) {
 //    TTF_SetError(str);
 //}
@@ -53,14 +61,16 @@ func GetError() error {
 }
 
 func SetError(err string) {
-	_err := (C.CString) (err)
+	_err := C.CString(err)
+	defer C.free(unsafe.Pointer(_err))
 	C.Do_TTF_SetError(_err)
-	C.free(unsafe.Pointer(_err))
 }
 
 func ByteSwappedUnicode(swap bool) {
 	val := 0
-	if swap {val = 1}
+	if swap {
+		val = 1
+	}
 	C.TTF_ByteSwappedUNICODE(C.int(val))
 }
 
@@ -73,10 +83,10 @@ Load file for use as a font, at ptsize size. This is actually TTF_OpenFontIndex(
 Returns: a pointer to the font as a TTF_Font. NULL is returned on errors.
 */
 func OpenFont(file string, size int) (*Font,error) {
-	_file := (C.CString) (file)
+	_file := C.CString(file)
+	defer C.free(unsafe.Pointer(_file))
 	_size := (C.int) (size)
 	f := (*C.TTF_Font) (C.TTF_OpenFont(_file, _size))
-	C.free(unsafe.Pointer(_file))
 	if f == nil {
 		return nil,GetError()
 	}
@@ -84,11 +94,11 @@ func OpenFont(file string, size int) (*Font,error) {
 }
 
 func OpenFontIndex(file string, size int, index int) (*Font,error) {
-	_file := (C.CString) (file)
+	_file := C.CString(file)
+	defer C.free(unsafe.Pointer(_file))
 	_size := (C.int) (size)
 	_index := (C.long) (index)
 	f := (*C.TTF_Font) (C.TTF_OpenFontIndex(_file, _size, _index))
-	C.free(unsafe.Pointer(_file))
 	if f == nil {
 		return nil,GetError()
 	}
@@ -97,26 +107,26 @@ func OpenFontIndex(file string, size int, index int) (*Font,error) {
 
 func (f *Font) RenderText_Solid(text string, color sdl.Color) *sdl.Surface {
 	_text := C.CString(text)
+	defer C.free(unsafe.Pointer(_text))
 	_c := C.SDL_Color{C.Uint8(color.R), C.Uint8(color.G), C.Uint8(color.B), C.Uint8(color.A)}
 	surface := (*sdl.Surface) (unsafe.Pointer(C.TTF_RenderText_Solid(f.f, _text, _c)))
-	C.free(unsafe.Pointer(_text))
 	return surface
 }
 
 func (f *Font) RenderText_Shaded(text string, fg, bg sdl.Color) *sdl.Surface {
 	_text := C.CString(text)
+	defer C.free(unsafe.Pointer(_text))
 	_fg := C.SDL_Color{C.Uint8(fg.R), C.Uint8(fg.G), C.Uint8(fg.B), C.Uint8(fg.A)}
 	_bg := C.SDL_Color{C.Uint8(bg.R), C.Uint8(bg.G), C.Uint8(bg.B), C.Uint8(bg.A)}
 	surface := (*sdl.Surface) (unsafe.Pointer(C.TTF_RenderText_Shaded(f.f, _text, _fg, _bg)))
-	C.free(unsafe.Pointer(_text))
 	return surface
 }
 
 func (f *Font) RenderText_Blended(text string, color sdl.Color) *sdl.Surface {
 	_text := C.CString(text)
+	defer C.free(unsafe.Pointer(_text))
 	_c := C.SDL_Color{C.Uint8(color.R), C.Uint8(color.G), C.Uint8(color.B), C.Uint8(color.A)}
 	surface := (*sdl.Surface) (unsafe.Pointer(C.TTF_RenderText_Blended(f.f, _text, _c)))
-	C.free(unsafe.Pointer(_text))
 	return surface
 }
 
@@ -153,7 +163,9 @@ func (f *Font) GetKerning() bool {
 
 func (f *Font) SetKerning(allowed bool) {
 	val := 0
-	if allowed {val = 1}
+	if allowed {
+		val = 1
+	}
 	C.TTF_SetFontKerning(f.f, C.int(val))
 }
 
